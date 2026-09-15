@@ -1,4 +1,4 @@
-# 📈 FinSignal AI — Análise de Sentimento Financeiro com Transformers
+# FinSignal AI — Análise de Sentimento Financeiro com Transformers
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![Hugging Face Transformers](https://img.shields.io/badge/%F0%9F%A4%97%20Transformers-Hugging%20Face-orange)](https://huggingface.co/)
