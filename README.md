@@ -29,7 +29,7 @@ Para garantir a confiabilidade dos rótulos e eliminar ambiguidades, o projeto u
 
 | Nome da Variável | Tipo de Dado | Descrição do Atributo | Função no Projeto |
 | :--- | :--- | :--- | :--- |
-| `sentence` | Textual (`string`) | Fragmento de texto com jargões, dados numéricos e relatórios financeiros. | **Variável de Entrada:** Processada via tokenização *WordPiece* para inferência do *FinBERT*[cite: 1]. |
+| `sentence` | Textual (`string`) | Fragmento de texto com jargões, dados numéricos e relatórios financeiros. | **Variável de Entrada:** Processada via tokenização *WordPiece* para inferência do *FinBERT*. |
 | `label` | Categórico (`int64` / `string`) | Rótulo de sentimento: 0 (*Negative*), 1 (*Neutral*), 2 (*Positive*). | **Variável Alvo:** Rótulo dependente a ser previsto pelo modelo supervisionado. |
 | `agreement_level` | Categórico (`string`) | Nível de consenso entre os avaliadores (`allagree`, `75agree`, `66agree`, `50agree`). | **Filtro de Qualidade:** Utilizado para selecionar a amostra `allagree` (100% de consenso). |
 
@@ -58,7 +58,7 @@ Para garantir a confiabilidade dos rótulos e eliminar ambiguidades, o projeto u
 
 | Métrica / Meta | Meta Estabelecida | Resultado Alcançado |
 | :--- | :---: | :---: |
-| **Acurácia Global no Teste** | > 80,00%[cite: 1] | **96,91%** |
+| **Acurácia Global no Teste** | > 80,00% | **96,91%** |
 | **F1-Score Ponderado (*Weighted Avg*)** | > 0,85 | **0,97** |
 | **F1-Score Macro** | Balanço entre classes | **0,96** |
 | **Execução Modular** | 100% em Google Colab c/ GPU | **Concluído** |
@@ -84,10 +84,10 @@ A inferência foi executada sobre o subconjunto de teste estratificado (20% da b
 
 | Etapa | Tarefa | Entregável | Data |
 | :--- | :--- | :--- | :--- |
-| **Etapa 1** | Apresentação da atuação da empresa, seleção dos dados textuais, metadados, objetivos e repositório no GitHub[cite: 1]. | Relatório técnico[cite: 1] | 16/09/2026 |
-| **Etapa 2** | Análise exploratória da base textual, distribuição de classes, verificação de nulos, tokenização e tratamento dos dados[cite: 1]. | Script de Pré-processamento | 25/09/2026 |
-| **Etapa 3** | Configuração da arquitetura Transformer, fine-tuning do modelo FinBERT e ajuste de hiperparâmetros[cite: 1]. | Relatório de Treinamento[cite: 1] | 23/10/2026 |
-| **Etapa 4** | Avaliação final, cálculo de métricas finais, documentação no GitHub e preparação do relatório final[cite: 1]. | Relatório Consolidado, Código Final e Apresentação | 20/11/2026 |
+| **Etapa 1** | Apresentação da atuação da empresa, seleção dos dados textuais, metadados, objetivos e repositório no GitHub. | Relatório técnico[cite: 1] | 16/09/2026 |
+| **Etapa 2** | Análise exploratória da base textual, distribuição de classes, verificação de nulos, tokenização e tratamento dos dados. | Script de Pré-processamento | 25/09/2026 |
+| **Etapa 3** | Configuração da arquitetura Transformer, fine-tuning do modelo FinBERT e ajuste de hiperparâmetros. | Relatório de Treinamento[cite: 1] | 23/10/2026 |
+| **Etapa 4** | Avaliação final, cálculo de métricas finais, documentação no GitHub e preparação do relatório final. | Relatório Consolidado, Código Final e Apresentação | 20/11/2026 |
 
 ---
 
