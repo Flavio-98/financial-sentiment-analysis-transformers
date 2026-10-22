@@ -54,8 +54,8 @@ Para garantir a confiabilidade dos rótulos e eliminar ambiguidades, utiliza-se 
 | **Acurácia Global no Teste** | > 90,00% | **96,91%** |
 | **F1-Score Ponderado (*Weighted Avg*)** | > 0,90 | **0,97** |
 | **F1-Score Macro (Equilíbrio de Classes)** | > 0,85 | **0,96** |
-| **Isolamento do Teste (*Held-Out*)** | 100% independente | 
-| **Execução Modular & Reprodutível** | 100% no Google Colab c/ GPU | 
+| **Isolamento do Teste (*Held-Out*)** | 100% independente | Concluído |
+| **Execução Modular & Reprodutível** | 100% no Google Colab c/ GPU | Concluído |
 
 ---
 
