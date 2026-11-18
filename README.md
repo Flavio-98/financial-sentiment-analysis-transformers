@@ -1,6 +1,5 @@
 # FinSignal AI — Análise de Sentimento Financeiro com FinBERT
 
-Projeto Aplicado II (Universidade Presbiteriana Mackenzie) · Flávio Estevam Nogueira Andrade
 
 Pipeline de Processamento de Linguagem Natural (PLN) que classifica textos financeiros em **Positivo, Neutro ou Negativo** com o FinBERT (`ProsusAI/finbert`), modelo Transformer pré-treinado em textos financeiros. O notebook compara três modelos em tweets financeiros: uma referência (classe majoritária), o FinBERT original e o FinBERT com ajuste fino supervisionado.
 
