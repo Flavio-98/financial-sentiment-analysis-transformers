@@ -1,98 +1,147 @@
 # FinSignal AI — Análise de Sentimento Financeiro com FinBERT
 
-Pipeline ponta a ponta de Processamento de Linguagem Natural (PLN) desenvolvido para quantificar o sentimento do mercado financeiro a partir de dados não estruturados (notícias e relatórios corporativos) utilizando o modelo de aprendizado profundo **FinBERT** (*Transformer*).
+Projeto Aplicado II (Universidade Presbiteriana Mackenzie) · Flávio Estevam Nogueira Andrade
+
+Pipeline de Processamento de Linguagem Natural (PLN) que classifica textos financeiros em **Positivo, Neutro ou Negativo** com o FinBERT (`ProsusAI/finbert`), modelo Transformer pré-treinado em textos financeiros. O notebook compara três modelos em tweets financeiros: uma referência (classe majoritária), o FinBERT original e o FinBERT com ajuste fino supervisionado.
 
 ---
 
 ## 📌 Resumo & Visão de Negócio
-O **FinSignal AI** opera como um motor de inteligência quantitativa voltado ao setor FinTech/B2B. No mercado financeiro, a velocidade na tomada de decisão é crítica; contudo, o volume diário de notícias econômicas, decisões regulatórias e relatórios de resultados ultrapassa a capacidade analítica humana em tempo real. 
+A FinSignal AI é uma startup de inteligência quantitativa voltada ao setor financeiro (B2B FinTech / SaaS), que propõe fornecer APIs e dashboards para gestoras de investimentos, corretoras e fintechs. O volume diário de notícias econômicas, decisões regulatórias e fatos relevantes excede o que os analistas conseguem ler, e a empresa propõe resolver esse gargalo com sinais estruturados de sentimento extraídos de textos não estruturados.
 
-Este projeto resolve esse gargalo convertendo textos financeiros não estruturados em sinais quantitativos de sentimento (Positivo, Neutro e Negativo), automatizando o *scoring* de risco e acelerando a tomada de decisão em relatórios e carteiras de investimento.
+Este projeto desenvolve e avalia o modelo de sentimento que serve de base a esse produto.
 
 ---
 
 ## 📊 Conjunto de Dados & Metadados
-O projeto utiliza o *dataset* público **FinancialPhraseBank** (`takala/financial_phrasebank`), *benchmark* em PLN financeiro criado pela Hanken School of Economics e publicado no *Journal of the Association for Information Science and Technology* (JASIST).
 
-Para garantir a confiabilidade dos rótulos e eliminar ambiguidades, utiliza-se o recorte **`Sentences_AllAgree`**, composto por sentenças com 100% de consenso entre os avaliadores humanos.
+| Base | Uso no projeto | Tamanho |
+| :--- | :--- | :--- |
+| FinancialPhraseBank, recorte `Sentences_AllAgree` (Malo et al., 2014, Aalto University School of Business) | Verificação em domínio do FinBERT original | 2.264 de 4.846 sentenças (consenso de 5 a 8 avaliadores). Teste estratificado de 453 sentenças |
+| Twitter Financial News Sentiment (`zeroshot/twitter-financial-news-sentiment`) | Ajuste fino e avaliação | 11.931 tweets (treino e validação originais unidos). 9.544 para ajuste fino e 2.387 para teste |
 
-* **Modalidade dos Dados:** Textual (Linguagem Natural Não Estruturada).
-* **Volume do Subconjunto:** 2.264 sentenças extraídas de artigos econômicos, relatórios e demonstrações de resultados.
-* **Rotulagem Supervisionada:** Classificação por especialistas do setor financeiro em três categorias.
+- **Modalidade dos dados:** textual (linguagem natural não estruturada), em inglês.
+- **Rotulagem supervisionada:** três polaridades (Positivo, Neutro e Negativo) nas duas bases.
+- **FinancialPhraseBank:** arquivo lido da pasta `FinancialPhraseBank-v1.0/` deste repositório.
+- **Divisões:** os dois splits são estratificados, com `random_state=42`.
 
-### Dicionário de Metadados
-| Nome da Variável | Tipo de Dado | Descrição do Atributo | Função no Projeto |
+### Dicionário de metadados — FinancialPhraseBank
+| Variável | Tipo | Descrição | Função no projeto |
 | :--- | :--- | :--- | :--- |
-| `sentence` | Textual (`string`) | Fragmento de texto com jargões, dados numéricos e relatórios financeiros. | **Variável de Entrada:** Processada via tokenização *WordPiece* para inferência do FinBERT. |
-| `label` | Categórico (`int64`) | Rótulo de sentimento: `0` (Negativo), `1` (Neutro), `2` (Positivo). | **Variável Alvo:** Rótulo dependente a ser previsto pelo modelo supervisionado. |
-| `agreement_level` | Categórico (`string`) | Nível de consenso entre os avaliadores (`allagree`, `75agree`, `66agree`, `50agree`). | **Filtro de Qualidade:** Utilizado para selecionar a amostra `allagree` (100% de consenso). |
+| `texto` | Textual (`string`) | Sentença financeira em inglês, com jargões, valores numéricos e dados corporativos. | Entrada do modelo, para tokenização e inferência. |
+| `rotulo_orig` | Categórico (`string`) | Rótulo original do arquivo: negative, neutral ou positive. | Rótulo de referência, lido do arquivo. |
+| `sentimento` | Categórico (`string`) | Rótulo traduzido: Negativo, Neutro ou Positivo. | Variável-alvo usada na avaliação. |
 
-### Distribuição das Classes (`Sentences_AllAgree`)
-| Classe | Rótulo | Sentenças | Proporção (%) |
-| :--- | :---: | :---: | :---: |
-| **Neutro** | `1` | 1.391 | 61,44% |
-| **Positivo** | `2` | 570 | 25,18% |
-| **Negativo** | `0` | 303 | 13,38% |
-| **Total** | — | **2.264** | **100,00%** |
+### Dicionário de metadados — Twitter Financial News Sentiment
+| Variável | Tipo | Descrição | Função no projeto |
+| :--- | :--- | :--- | :--- |
+| `text` | Textual (`string`) | Manchete ou tweet financeiro com tickers (ex.: $BYND), jargões e URLs. | Entrada submetida à limpeza leve, à tokenização e ao ajuste fino. |
+| `label` | Categórico (`int64`) | 0 (Bearish/Negativo), 1 (Bullish/Positivo), 2 (Neutral/Neutro). | Variável-alvo no ajuste fino e na matriz de confusão. |
 
-* **Comprimento médio das sentenças:** ~22 palavras por observação.
-* **Vocabulário dominante:** *EUR, company, profit, sales, net, mn*.
+### Distribuição das classes
+| Classe | FinancialPhraseBank (`Sentences_AllAgree`) | Twitter Financial News |
+| :--- | :---: | :---: |
+| Neutro | 1.391 (61,44%) | 7.744 (64,91%) |
+| Positivo | 570 (25,18%) | 2.398 (20,10%) |
+| Negativo | 303 (13,38%) | 1.789 (14,99%) |
+| **Total** | **2.264** | **11.931** |
+
+- **FinancialPhraseBank:** média de 22 palavras por sentença. Palavras mais frequentes: EUR, company, profit, net, million e sales.
+- **Twitter:** textos curtos, com tickers, nomes de bancos e links, que passaram por limpeza leve (remoção de links e de espaços duplicados), mantendo tickers e pontuação.
 
 ---
 
 ## 🎯 Objetivos & Metas
 
 ### Objetivos
-* Desenvolver, implementar e avaliar um *pipeline* de Inteligência Artificial baseado no modelo *Transformer* pré-treinado (**FinBERT**) para automação da análise de sentimento textual.
-* Realizar Análise Exploratória de Dados (EDA), limpeza de ruídos de formatação e aplicação de **amostragem estratificada** (*80% treino / 20% teste*).
-* Executar tokenização apropriada via algoritmo *WordPiece* com tokens de controle (`[CLS]` e `[SEP]`), *padding* e truncamento.
-* Avaliar a capacidade de generalização do modelo utilizando um subconjunto de teste estritamente isolado (*held-out dataset*).
+- Desenvolver, implementar e avaliar um pipeline de IA baseado no FinBERT para a análise de sentimento de textos financeiros.
+- Realizar a Análise Exploratória de Dados (EDA) e a limpeza leve das duas bases.
+- Aplicar a tokenização WordPiece própria do FinBERT.
+- Estabelecer um modelo de referência (baseline) como piso comparativo.
+- Avaliar o FinBERT original, sem ajuste fino, nas duas bases.
+- Realizar o ajuste fino (fine-tuning) supervisionado do FinBERT.
+- Avaliar os modelos com Acurácia Global, F1-Score Ponderado, F1-Score Macro e Matriz de Confusão, em conjuntos de teste separados do treino.
 
-### Metas vs. Resultados Alcançados
-| Métrica / Meta | Meta Estabelecida | Resultado Alcançado |
-| :--- | :---: | :---: |
-| **Acurácia Global no Teste** | > 90,00% | **96,91%** |
-| **F1-Score Ponderado (*Weighted Avg*)** | > 0,90 | **0,97** |
-| **F1-Score Macro (Equilíbrio de Classes)** | > 0,85 | **0,96** |
-| **Isolamento do Teste (*Held-Out*)** | 100% independente | Concluído |
-| **Execução Modular & Reprodutível** | 100% no Google Colab c/ GPU | Concluído |
+### Metas vs. resultados
+| Meta | Resultado |
+| :--- | :--- |
+| Superar a referência em acurácia e F1 ponderado (Twitter) | 86,22% contra 64,89% e 0,8621 contra 0,5108 |
+| Superar o FinBERT original em acurácia e F1 macro (Twitter) | 86,22% contra 68,79% e 0,8147 contra 0,6386 |
+| F1 macro acima da referência, com métricas por classe | 0,8147 contra 0,2624 |
 
 ---
 
-## 📈 Desempenho Detalhado no Teste (453 Amostras Independente)
-A inferência foi executada sobre o subconjunto de teste estratificado (20% da base — **453 sentenças**). O conjunto permaneceu estritamente isolado (*held-out*) durante o processo, garantindo a total independência na avaliação e que os resultados reflitam a real capacidade de generalização em dados inéditos.
+## 🔬 Etapas do notebook
+1. Leitura e análise exploratória do FinancialPhraseBank.
+2. FinBERT pré-treinado aplicado às 453 sentenças de teste (verificação em domínio).
+3. Carga, análise exploratória e limpeza do Twitter Financial News Sentiment, com split estratificado.
+4. Avaliação nos 2.387 tweets de teste do modelo de referência (`DummyClassifier`, classe majoritária) e do FinBERT original (truncamento em 128 tokens, lotes de 32).
+5. Ajuste fino com `Trainer`: 3 épocas, taxa de aprendizado de 2e-5, lote de 32, weight decay de 0,01 e `max_length` de 128. O checkpoint de maior F1 macro é restaurado ao final.
+6. Avaliação final do modelo ajustado: relatório de classificação e matriz de confusão.
 
-| Classe | Precisão | Revocação (*Recall*) | F1-Score | Suporte |
+---
+
+## 📈 Resultados
+
+### FinancialPhraseBank — 453 sentenças (verificação em domínio)
+Acurácia de 96,91%, F1 macro de 0,96 e F1 ponderado de 0,97. O FinBERT foi desenvolvido com essa base.
+
+| Classe | Precisão | Revocação | F1-Score | Suporte |
 | :--- | :---: | :---: | :---: | :---: |
-| **Negativo (0)** | 0,95 | 0,97 | 0,96 | 61 |
-| **Neutro (1)** | 1,00 | 0,96 | 0,98 | 278 |
-| **Positivo (2)** | 0,91 | 0,99 | 0,95 | 114 |
-| **Acurácia Global** | — | — | **96,91%** | **453** |
-| **Macro Avg** | 0,95 | 0,97 | **0,96** | 453 |
-| **Weighted Avg** | 0,97 | 0,97 | **0,97** | 453 |
+| Negativo | 0,95 | 0,97 | 0,96 | 61 |
+| Neutro | 1,00 | 0,96 | 0,98 | 278 |
+| Positivo | 0,91 | 0,99 | 0,95 | 114 |
+
+### Twitter — 2.387 tweets de teste
+| Modelo | Acurácia | F1 macro | F1 ponderado |
+| :--- | :---: | :---: | :---: |
+| Referência (classe majoritária) | 64,89% | 0,2624 | 0,5108 |
+| FinBERT original (sem ajuste fino) | 68,79% | 0,6386 | 0,6983 |
+| FinBERT ajustado (Época 2) | 86,22% | 0,8147 | 0,8621 |
+
+**Por classe (precisão / revocação / F1):**
+
+| Classe (suporte) | FinBERT original | FinBERT ajustado |
+| :--- | :---: | :---: |
+| Negativo (358) | 0,4490 / 0,7626 / 0,5652 | 0,7290 / 0,7514 / 0,7400 |
+| Positivo (480) | 0,5863 / 0,5875 / 0,5869 | 0,8074 / 0,7771 / 0,7919 |
+| Neutro (1.549) | 0,8374 / 0,7017 / 0,7636 | 0,9100 / 0,9141 / 0,9121 |
+
+**Ajuste fino por época:**
+
+| Época | Loss de treino | Loss de validação | Acurácia | F1 macro |
+| :---: | :---: | :---: | :---: | :---: |
+| 1 | 0,5266 | 0,4199 | 0,8454 | 0,7883 |
+| 2 | 0,3020 | 0,3990 | 0,8622 | 0,8147 |
+| 3 | 0,1773 | 0,4369 | 0,8584 | 0,8116 |
+
+**Matriz de confusão do modelo ajustado (linhas: classe real; colunas: classe prevista):**
+
+| | Negativo | Positivo | Neutro |
+| :--- | :---: | :---: | :---: |
+| Negativo | 269 | 21 | 68 |
+| Positivo | 35 | 373 | 72 |
+| Neutro | 65 | 68 | 1.416 |
 
 ---
 
 ## 💼 Produto Gerado & Modelo de Negócio
 
-### Produto Gerado (`FinSignal Core Engine`)
-O produto desenvolvido é o motor de inteligência **FinSignal AI**, uma solução analítica focada em converter textos financeiros não estruturados (notícias corporativas, relatórios de mercado e fatos relevantes) em sinais numéricos estruturados de sentimento (Positivo, Neutro e Negativo). O *pipeline* realiza a ingestão do texto, aplica a tokenização pelo algoritmo *WordPiece* e classifica a mensagem com base no FinBERT, retornando a análise de sentimento e o grau de confiança da predição.
+### Produto Gerado
+O produto é o modelo de análise de sentimento da FinSignal AI, construído sobre o FinBERT com ajuste fino supervisionado. Ele recebe textos financeiros curtos em inglês, como manchetes e posts em redes sociais, e os classifica em Positivo, Neutro ou Negativo. O texto passa por uma limpeza leve (remoção de links e de espaços duplicados), é tokenizado com o WordPiece do FinBERT, com limite de 128 tokens, e segue para o classificador ajustado sobre a base Twitter Financial News Sentiment.
 
 ### Modelo de Negócio (B2B / FinTech)
-* **Proposta de Valor:** Redução drástica do tempo de leitura de analistas e gestores, transformando fluxos de notícias em métricas quantitativas de risco e sentimento em tempo real, abrindo a possibilidade de considerar mais informações e favorecer a tomada de decisão e os ajustes de portfólio.
-* **Público-Alvo:** Gestoras de fundos de investimento (*buy-side*), mesas de operações (*sell-side*), *fintechs*, departamentos de relações com investidores (RI) e investidores individuais.
-* **Estratégia de Monetização:**
-  * **API por Demanda (*Pay-per-call*):** Cobrança por volume de requisições ou notícias processadas via integração de API.
-  * **Assinatura Enterprise (SaaS):** Plano recorrente mensal para acesso a *dashboards* de monitoramento de carteiras e *feeds* de notícias em tempo real.
+- **Proposta de valor:** reduzir o tempo que analistas e gestores gastam lendo notícias, transformando o fluxo diário em indicadores de sentimento que permitem acompanhar mais fontes e apoiar decisões de alocação.
+- **Público-alvo:** gestoras de fundos (*buy-side*), mesas de operação, *fintechs*, áreas de relações com investidores e investidores individuais.
+- **Monetização:** uma API com cobrança por volume de requisições processadas e uma assinatura mensal (SaaS) com *dashboards* de monitoramento de carteiras e *feed* de notícias.
 
 ---
 
 ## 📖 Storytelling
-
-1. **O Problema:** No mercado financeiro o tempo é um fator crítico que pode definir ganhos maiores ou prejuízos em uma operação. Assim, o volume diário de notícias econômicas, relatórios corporativos e regulatórios supera a capacidade humana de leitura, gerando gargalos e atrasos na identificação de riscos e de oportunidades.
-2. **Os Dados:** Utilizou-se o *dataset* público *FinancialPhraseBank* (recorte `Sentences_AllAgree` com 2.264 sentenças e 100% de consenso humano). A análise exploratória revelou sentenças curtas (média de 22 palavras), com forte assimetria de classes (61,44% neutras, 25,18% positivas e 13,38% negativas) e vocabulário denso em jargões econômicos.
-3. **A Solução:** Implementou-se o motor **FinSignal AI** utilizando o modelo *FinBERT* (*Transformer* pré-treinado para o segmento financeiro). Diferente de modelos genéricos ou estatísticos, o FinBERT compreende a dependência contextual e a semântica bidirecional do texto corporativo via mecanismos de autoatenção.
-4. **O Impacto:** Validado em um conjunto de teste independente com 453 amostras *held-out*, o modelo alcançou **96,91% de Acurácia Global** e **0,97 de F1-Score Ponderado**. O produto transforma horas de leitura manual em sinais quantitativos instantâneos via API e *dashboards* para que gestoras, *fintechs* e investidores tomem decisões de forma ágil.
+1. **O Problema:** no mercado financeiro, o tempo pode definir ganho ou prejuízo em uma operação. O volume diário de notícias, relatórios corporativos, fatos relevantes e postagens em redes sociais é maior do que um analista consegue ler, o que atrasa a identificação de riscos e oportunidades.
+2. **Os Dados:** duas bases públicas. O FinancialPhraseBank (subconjunto `Sentences_AllAgree`, com 2.264 sentenças de consenso humano total e média de 22 palavras) serviu como referência em domínio. O Twitter Financial News Sentiment (11.931 registros, com tickers de ativos e linguagem informal de mercado) foi usado no ajuste fino, com 9.544 registros, e na avaliação, com 2.387. Nas duas bases a classe neutra predomina (61,44% e 64,91%).
+3. **A Solução:** o modelo de sentimento da FinSignal AI, baseado no FinBERT, de arquitetura Transformer, com ajuste fino supervisionado de 3 épocas sobre tweets financeiros. Diferente das abordagens por contagem de palavras (Bag-of-Words e TF-IDF), o FinBERT usa autoatenção para considerar o contexto de cada palavra na frase.
+4. **O Impacto:** no FinancialPhraseBank, o FinBERT pré-treinado alcançou 96,91% de acurácia na verificação em domínio. Nos 2.387 tweets de teste, a referência obteve 64,89% de acurácia, o FinBERT original 68,79% e o FinBERT ajustado 86,22% (F1 macro de 0,8147). O ajuste fino elevou a acurácia em 17,43 pontos percentuais em relação ao FinBERT original. O modelo pode ser oferecido por API e dashboards a gestoras e fintechs.
 
 ---
 
@@ -100,19 +149,35 @@ O produto desenvolvido é o motor de inteligência **FinSignal AI**, uma soluç�
 
 | Etapa | Tarefa | Entregável | Data | Status |
 | :--- | :--- | :--- | :---: | :---: |
-| **Etapa 1** | Apresentação da atuação da empresa, seleção dos dados textuais, metadados, objetivos e repositório no GitHub. | Relatório técnico | 16/09/2026 | Concluído |
-| **Etapa 2** | Análise exploratória da base textual, distribuição de classes, verificação de nulos, tokenização e tratamento dos dados. | Script de Pré-processamento | 25/09/2026 | Concluído |
-| **Etapa 3** | Configuração da arquitetura Transformer, fine-tuning do FinBERT, produto preliminar, modelo de negócios e storytelling. | Relatório de Treinamento | 23/10/2026 | **Concluído** |
-| **Etapa 4** | Avaliação final, consolidação do repositório, gravação de apresentação em vídeo e relatório final. | Relatório Consolidado & Apresentação | 20/11/2026 | A realizar |
+| Etapa 1 | Apresentação da atuação da empresa, seleção dos dados textuais, metadados, objetivos e repositório no GitHub. | Relatório técnico | 16/09/2026 | Concluído |
+| Etapa 2 | Análise exploratória da base textual, distribuição de classes, verificação de nulos, tokenização e tratamento dos dados. | Script de Pré-processamento | 25/09/2026 | Concluído |
+| Etapa 3 | Configuração da arquitetura Transformer, ajuste fino (fine-tuning) do FinBERT e configuração dos hiperparâmetros. | Relatório de Treinamento | 23/10/2026 | Concluído |
+| Etapa 4 | Avaliação final (com a comparação entre o FinBERT original e o ajustado), consolidação do repositório, gravação da apresentação em vídeo e relatório final. | Relatório Consolidado, Código Final e Apresentação | 20/11/2026 | A realizar |
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
-* **Linguagem:** Python
-* **Requisição & Extração:** `urllib.request`
-* **Manipulação & Estruturação:** `pandas`, `NumPy`
-* **Análise Léxica & Frequência:** `collections.Counter`
-* **Visualização Gráfica:** `matplotlib.pyplot`, `seaborn`
-* **Amostragem & Avaliação:** `scikit-learn` (`train_test_split`, `accuracy_score`, `classification_report`)
-* **Modelagem & Inferência Transformer:** `transformers` (`pipeline` / FinBERT)
-* **Ambiente:** Google Colaboratory com aceleração via GPU
+- **Linguagem:** Python
+- **Ambiente:** Google Colab, com aceleração via GPU
+- **Requisição & extração:** `urllib.request`; `datasets` (`load_dataset`, `Dataset`)
+- **Manipulação & estruturação:** pandas, NumPy, módulo `re`
+- **Análise léxica:** `collections.Counter`
+- **Visualização:** matplotlib.pyplot, seaborn
+- **Amostragem & avaliação:** scikit-learn (`train_test_split`, `DummyClassifier`, `accuracy_score`, `f1_score`, `classification_report`, `confusion_matrix`)
+- **Modelagem Transformer:** `transformers` (`pipeline`, `AutoTokenizer`, `AutoModelForSequenceClassification`, `TrainingArguments`, `Trainer`) e `torch` (verificação de GPU)
+
+---
+
+## ▶️ Como executar
+1. Abra o notebook `Projeto2_AnaliseSentimento_MercadoFinanceiro.ipynb` no Google Colab, com GPU.
+2. Execute as células em ordem. A primeira instala `datasets` e `transformers`.
+3. O arquivo `Sentences_AllAgree.txt` é lido deste repositório, pela URL indicada na célula 2.
+4. O ajuste fino leva cerca de 11 minutos em GPU (897 passos). Executar o treinamento de novo pode gerar pequenas variações nas métricas.
+
+## ⚠️ Observação metodológica
+Os 2.387 tweets de teste foram usados ao final de cada época para escolher o melhor checkpoint (Época 2) e na avaliação final. A Época 3 teria dado 85,84% de acurácia e 0,8116 de F1 macro.
+
+## 📚 Referências
+- ARACI, D. FinBERT: Financial Sentiment Analysis with Pre-trained Language Models. arXiv:1908.10063, 2019.
+- DEVLIN, J. et al. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. NAACL-HLT, 2019.
+- MALO, P. et al. Good Debt or Bad Debt: Detecting Semantic Orientations in Economic Texts. JASIST, v. 65, n. 4, 2014.
