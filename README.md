@@ -151,7 +151,7 @@ O produto é o modelo de análise de sentimento da FinSignal AI, construído sob
 | Etapa 1 | Apresentação da atuação da empresa, seleção dos dados textuais, metadados, objetivos e repositório no GitHub. | Relatório técnico | 16/09/2026 | Concluído |
 | Etapa 2 | Análise exploratória da base textual, distribuição de classes, verificação de nulos, tokenização e tratamento dos dados. | Script de Pré-processamento | 25/09/2026 | Concluído |
 | Etapa 3 | Configuração da arquitetura Transformer, ajuste fino (fine-tuning) do FinBERT e configuração dos hiperparâmetros. | Relatório de Treinamento | 23/10/2026 | Concluído |
-| Etapa 4 | Avaliação final (com a comparação entre o FinBERT original e o ajustado), consolidação do repositório, gravação da apresentação em vídeo e relatório final. | Relatório Consolidado, Código Final e Apresentação | 20/11/2026 | A realizar |
+| Etapa 4 | Avaliação final (com a comparação entre o FinBERT original e o ajustado), consolidação do repositório, gravação da apresentação em vídeo e relatório final. | Relatório Consolidado, Código Final e Apresentação | 20/11/2026 | Concluído |
 
 ---
 
@@ -180,3 +180,13 @@ Os 2.387 tweets de teste foram usados ao final de cada época para escolher o me
 - ARACI, D. FinBERT: Financial Sentiment Analysis with Pre-trained Language Models. arXiv:1908.10063, 2019.
 - DEVLIN, J. et al. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. NAACL-HLT, 2019.
 - MALO, P. et al. Good Debt or Bad Debt: Detecting Semantic Orientations in Economic Texts. JASIST, v. 65, n. 4, 2014.
+
+---
+
+## 🎥 Apresentação do Projeto
+
+Assista à apresentação completa do **FinSignal AI** (contextualização do problema, arquitetura FinBERT, boas práticas com benchmark, ajuste fino e resultados):
+
+[![Assistir no YouTube](https://img.shields.io/badge/YouTube-Apresenta%C3%A7%C3%A3o%20FinSignal%20AI%20(11min)-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/rlrWYxjMBf0)
+
+🔗 **Link direto:** https://youtu.be/rlrWYxjMBf0
